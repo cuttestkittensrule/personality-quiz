@@ -34,10 +34,6 @@ public class QuestionRunnerTest {
 		});
 	}
 
-	public void setPrintStream() {
-		//
-	}
-
 	public OutputStream stream;
 	@Parameter(0)
 	public String input;
