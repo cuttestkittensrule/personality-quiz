@@ -1,0 +1,6 @@
+{
+	"java.project.referencedLibraries": [
+		"lib/**/*.jar",
+		"c:\\Users\\mango.000\\Coding\\Java\\jars\\*.jar"
+	]
+}
