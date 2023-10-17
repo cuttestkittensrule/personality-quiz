@@ -22,11 +22,11 @@ public enum AnswerType {
 	/**
 	 * A positive response to a question
 	 */
-	positive("yes", "yep", "ye"),
+	positive("yes", "yep", "ye", "yes!", "yep!", "ye!"),
 	/**
 	 * A negative response to a question
 	 */
-	negative("no", "nuh", "nope");
+	negative("no", "nuh", "nope", "no!", "nuh!", "nope!");
 
 	private AnswerType(String... acceptableAnswers) {
 		for (String string : acceptableAnswers) {

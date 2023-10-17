@@ -1,14 +1,18 @@
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -59,8 +63,20 @@ public class QuestionRunnerTest {
 								Questions.HW_DESIGN) }
 		});
 	}
-
-	public OutputStream stream;
+	
+	private ByteArrayOutputStream outputStream;
+	private PrintStream previousPrint;
+	@Before
+	public void initializePrintStream() {
+		previousPrint = System.out;
+		outputStream = new ByteArrayOutputStream();
+		System.setOut(new PrintStream(outputStream));
+	}
+	@After
+	public void closeStream() throws IOException {
+		outputStream.close();
+		System.setOut(previousPrint);
+	}
 	@Parameter(0)
 	public String input;
 	@Parameter(1)
@@ -71,48 +87,21 @@ public class QuestionRunnerTest {
 	public String printedValues() {
 		StringBuilder builder = new StringBuilder();
 		for (Questions q : expectedQuestions) {
-			builder.append("\n");
+			builder.append(System.lineSeparator());
 			builder.append(q.getPrompt());
-			builder.append("\n");
+			builder.append(System.lineSeparator());
 		}
 		return builder.toString();
 	}
 
 	@Test
-	public void expectedOutputTestLF() {
-		try (InputStream stream = new ByteArrayInputStream(input.getBytes());
-				QuestionRunner runner = new QuestionRunner(stream)) {
+	public void expectedOutputTest() {
+		assumeFalse(input.contains("\r"));
+		try (InputStream inputStream = new ByteArrayInputStream(input.getBytes());
+				QuestionRunner runner = new QuestionRunner(inputStream)) {
 			assumeTrue(runner.getDelimeter().matcher("\n").matches());
 			runner.start(startingQuestion);
-			assertEquals(printedValues(), runner.getPrintedText());
-		} catch (IOException e) {
-			throw new RuntimeException("Failure on closing stream", e);
-		}
-	}
-
-	@Test
-	public void expectedOutputTestCRLF() {
-		String newInput = input.replace("\n", "\r\n");
-		try (InputStream stream = new ByteArrayInputStream(newInput.getBytes());
-				QuestionRunner runner = new QuestionRunner(stream)) {
-			assumeTrue(runner.getDelimeter().matcher("\r\n").matches());
-			assumeTrue(newInput.contains("\r\n"));
-			runner.start(startingQuestion);
-			assertEquals(printedValues(), runner.getPrintedText());
-		} catch (IOException e) {
-			throw new RuntimeException("Failure on closing stream", e);
-		}
-	}
-
-	@Test
-	public void expectedOutputTestCR() {
-		String newInput = input.replace("\n", "\r");
-		try (InputStream stream = new ByteArrayInputStream(newInput.getBytes());
-				QuestionRunner runner = new QuestionRunner(stream)) {
-			assumeTrue(runner.getDelimeter().matcher("\r").matches());
-			assumeTrue(newInput.contains("\r"));
-			runner.start(startingQuestion);
-			assertEquals(printedValues(), runner.getPrintedText());
+			assertEquals(printedValues(), outputStream.toString());
 		} catch (IOException e) {
 			throw new RuntimeException("Failure on closing stream", e);
 		}

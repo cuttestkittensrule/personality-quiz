@@ -4,7 +4,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-import java.util.IllegalFormatException;
 
 /**
  * Runs through the questions.
@@ -41,47 +40,11 @@ public class QuestionRunner implements AutoCloseable {
 	}
 
 	/**
-	 * Prints the message, then stores it's contents to {@link #printedText}
-	 * 
-	 * @param message the message to print
-	 * @see #getPrintedText()
-	 */
-	private void println(String message) {
-		System.out.println(message);
-		printedText.append(message);
-		printedText.append("\n");
-	}
-
-	/**
-	 * Prints a line, and stores it's contents to {@link #printedText}
-	 * 
-	 * @see #println(String)
-	 * @see #getPrintedText()
-	 */
-	private void println() {
-		println("");
-	}
-
-	/**
-	 * Prints a new line with the given format and arguments
-	 * 
-	 * @param format the format of the printed stream
-	 * @param args   the arguments to apply to the stream
-	 * @throws IllegalFormatException if the format is invalid
-	 * @apiNote equivelent to calling {@link #println(String)}
-	 *          with the string returned by {@link String#format(String, Object...)}
-	 */
-	private void printf(String format, Object... args) {
-		String message = String.format(format, args);
-		println(message);
-	}
-
-	/**
 	 * Gets the delimeter used by the internal scanner
 	 * 
 	 * @return the delimeter being used
 	 */
-	public Pattern getDelimeter() {
+	Pattern getDelimeter() {
 		if (closed) {
 			throw new IllegalStateException(errorMessage);
 		}
@@ -97,11 +60,11 @@ public class QuestionRunner implements AutoCloseable {
 		if (closed) {
 			throw new IllegalStateException(errorMessage);
 		}
-		println("What is your name?");
+		System.out.println("What is your name?");
 		name = input.nextLine();
-		printf("Hello, %s!%n", name);
-		println("Welcome to the interest quiz!");
-		println("Based on your interests, this quiz will reccomend an activity to join.");
+		System.out.printf("Hello, %s!%n", name);
+		System.out.println("Welcome to the interest quiz!");
+		System.out.println("Based on your interests, this quiz will reccomend an activity to join.");
 	}
 
 	/**
@@ -118,8 +81,8 @@ public class QuestionRunner implements AutoCloseable {
 		Questions currentQuestion = Objects.requireNonNull(startingQuestion);
 		boolean running = true;
 		while (running) {
-			println();
-			println(currentQuestion.getPrompt());
+			System.out.println();
+			System.out.println(currentQuestion.getPrompt());
 			if (currentQuestion.hasAnswers()) {
 				String response = input.nextLine();
 				Optional<Questions> next = currentQuestion.getNext(response);
@@ -127,7 +90,7 @@ public class QuestionRunner implements AutoCloseable {
 					currentQuestion = next.get();
 					continue;
 				} else {
-					println("Invalid answer");
+					System.out.println("Invalid answer");
 					running = false;
 				}
 			} else if (currentQuestion.hasNext()) {
