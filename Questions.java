@@ -18,74 +18,57 @@ public enum Questions {
 	SW_STRATEGY("Join the robotics software: strategy subteam!"),
 	BUS_MEDIA("Join the robotics business: media subteam!"),
 	BUS_FINANCE("Join the robotics business: finance subteam"),
-	HW_QUESTION(
-			"Would you rather design something (\"design\"), manufacture parts (\"parts\"), manage electrical wires (\"wires\"), or something else (\"other\")?",
-			new Answer("design", HW_DESIGN),
-			new Answer("parts", HW_FABRICATION),
-			new Answer("wires", HW_ELECTRICAL),
-			new Answer("other", CHAM)),
-	SW_SUBTEAM_QUESTION(
-			"Do you like designing applications? (\"yes\" or \"no\")",
-			new Answer("yes", SW_STRATEGY),
-			new Answer("no", SW_ROBOT)),
 	HW_DESIGN_QUESTION(
 			"Do you like designing things? (\"yes\" or \"no\")",
-			new Answer("yes", HW_DESIGN),
-			new Answer("no", CHAM)),
+			AnswerType.positive.createAnswer(HW_DESIGN),
+			AnswerType.negative.createAnswer(CHAM)),
+	HW_FABRICATION_QUESTION(
+			"Do you like manufacturing parts? (\"yes\" or \"no\")",
+			AnswerType.positive.createAnswer(HW_FABRICATION),
+			AnswerType.negative.createAnswer(HW_DESIGN_QUESTION)),
+	HW_ELECTRICAL_QUESTION(
+			"Do you like working with electricity? (\"yes\" or \"no\")",
+			AnswerType.positive.createAnswer(HW_ELECTRICAL),
+			AnswerType.negative.createAnswer(HW_FABRICATION_QUESTION)),
+	SW_SUBTEAM_QUESTION(
+			"Do you like designing applications? (\"yes\" or \"no\")",
+			AnswerType.positive.createAnswer(SW_STRATEGY),
+			AnswerType.negative.createAnswer(SW_ROBOT)),
 	BUS_MEDIA_QUESTION(
 			"Do you like recording or editing videos? (\"yes\" or \"no\")",
-			new Answer("yes", BUS_MEDIA),
-			new Answer("no", HW_DESIGN_QUESTION)),
+			AnswerType.positive.createAnswer(BUS_MEDIA),
+			AnswerType.negative.createAnswer(CHAM)),
 	SW_QUESTION(
 			"Do you like writing software? (\"yes\" or \"no\")",
-			new Answer("yes", SW_SUBTEAM_QUESTION),
-			new Answer("no", BUS_MEDIA_QUESTION)),
+			AnswerType.positive.createAnswer(SW_SUBTEAM_QUESTION),
+			AnswerType.negative.createAnswer(BUS_MEDIA_QUESTION)),
 	BUS_AWARDS_QUESTION_2(
 			"Do you like writing? (\"yes\" or \"no\")",
-			new Answer("yes", BUS_AWARDS),
-			new Answer("no", SW_QUESTION)),
+			AnswerType.positive.createAnswer(BUS_AWARDS),
+			AnswerType.negative.createAnswer(SW_QUESTION)),
 	BUS_FINANCE_QUESTION(
 			"Do you like handling money? (\"yes\" or \"no\")",
-			new Answer("yes", BUS_FINANCE),
-			new Answer("no", BUS_AWARDS_QUESTION_2)),
+			AnswerType.positive.createAnswer(BUS_FINANCE),
+			AnswerType.negative.createAnswer(BUS_AWARDS_QUESTION_2)),
 	BUS_OUTREACH_QUESTION(
-			"Do you like convincing people to do what you are interested in?",
-			new Answer("yes", BUS_OUTREACH),
-			new Answer("no", BUS_AWARDS_QUESTION_2)),
+			"Do you like convincing people to do what you are interested in? (\"yes\" or \"no\")",
+			AnswerType.positive.createAnswer(BUS_OUTREACH),
+			AnswerType.negative.createAnswer(BUS_AWARDS_QUESTION_2)),
 	BUS_AWARDS_QUESTION_1(
 			"Do you like creating presentations? (\"yes\" or \"no\")",
-			new Answer("yes", BUS_OUTREACH_QUESTION),
-			new Answer("no", BUS_AWARDS_QUESTION_2)),
+			AnswerType.positive.createAnswer(BUS_OUTREACH_QUESTION),
+			AnswerType.negative.createAnswer(BUS_FINANCE_QUESTION)),
 	BUS_QUESTION(
 			"Do you like talking to people? (\"yes\" or \"no\")",
-			new Answer("yes", BUS_AWARDS_QUESTION_1),
-			new Answer("no", BUS_FINANCE_QUESTION)),
-	START("Do you like building things? (\"yes\" or \"no\")",
-			new Answer("yes", HW_QUESTION),
-			new Answer("no", BUS_QUESTION));
-
-	/**
-	 * Represents a response to a question, and the appropriate
-	 */
-	private static class Answer {
-		private final String answerText;
-		private final Questions next;
-
-		/**
-		 * Creates an answer
-		 * 
-		 * @param answer the response to the promt that this is associated with
-		 * @param next   the next question to run if the response to the prompt is
-		 *               {@code answer}
-		 */
-		public Answer(String answer, Questions next) {
-			this.answerText = answer;
-			this.next = next;
-		}
-	}
+			AnswerType.positive.createAnswer(BUS_AWARDS_QUESTION_1),
+			AnswerType.negative.createAnswer(BUS_FINANCE_QUESTION)),
+	START(
+			"Do you like building things? (\"yes\" or \"no\")",
+			AnswerType.positive.createAnswer(HW_ELECTRICAL_QUESTION),
+			AnswerType.negative.createAnswer(BUS_QUESTION));
 
 	private final String prompt;
-	private final Answer[] answers;
+	private final AnswerType.Answer[] answers;
 	private final Optional<Questions> next;
 
 	/**
@@ -99,9 +82,13 @@ public enum Questions {
 	 * @apiNote having no answers inputted will result in the prompt being printed,
 	 *          and the program is exited.
 	 */
-	private Questions(String prompt, Answer... answers) {
+	private Questions(String prompt, AnswerType.Answer... answers) {
 		this.prompt = Objects.requireNonNull(prompt, "prompt should not be null");
 		this.answers = Objects.requireNonNull(answers, "answers should not be null");
+		for (int i = 0; i < answers.length; i++) {
+			Objects.requireNonNull(answers[i], String.format("Answer %d should not be null", i));
+			Objects.requireNonNull(answers[i].getNext(), String.format("Answer %d's next should not be null", i));
+		}
 		this.next = Optional.empty();
 	}
 
@@ -115,7 +102,7 @@ public enum Questions {
 	 */
 	private Questions(String prompt, Questions next) {
 		this.prompt = Objects.requireNonNull(prompt, "prompt should not be null");
-		this.answers = new Answer[0];
+		this.answers = new AnswerType.Answer[0];
 		this.next = Optional.ofNullable(next);
 	}
 
@@ -128,9 +115,9 @@ public enum Questions {
 	 */
 	public Optional<Questions> getNext(String stringAnswer) {
 		stringAnswer = Objects.requireNonNull(stringAnswer, "stringAnswer should not be null").toLowerCase();
-		for (Answer answer : answers) {
-			if (answer.answerText.equals(stringAnswer)) {
-				return Optional.of(answer.next);
+		for (AnswerType.Answer answer : answers) {
+			if (answer.matches(stringAnswer)) {
+				return Optional.of(answer.getNext());
 			}
 		}
 		return Optional.empty();

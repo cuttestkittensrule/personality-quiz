@@ -1,6 +1,5 @@
 import static org.junit.Assert.assertEquals;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assume.*;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.hamcrest.core.Is;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -19,18 +17,46 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class QuestionRunnerTest {
-	@Parameters(name= "{index}: {1} -> {0}") 
+	@Parameters(name = "{index}: {1} -> {0}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] {
-				{ "yes\nwires", Questions.START,
-						Arrays.asList(Questions.START, Questions.HW_QUESTION, Questions.HW_ELECTRICAL) },
-				{ "dEsIgn", Questions.HW_QUESTION, Arrays.asList(Questions.HW_QUESTION, Questions.HW_DESIGN) },
-				{ "other", Questions.HW_QUESTION, Arrays.asList(Questions.HW_QUESTION, Questions.CHAM) },
-				{ "pArTs", Questions.HW_QUESTION, Arrays.asList(Questions.HW_QUESTION, Questions.HW_FABRICATION) },
-				//
 				{ "no\nyes\nyes\nyes", Questions.START,
-						Arrays.asList(Questions.START, Questions.BUS_QUESTION, Questions.BUS_AWARDS_QUESTION_1,
-								Questions.BUS_OUTREACH_QUESTION, Questions.BUS_OUTREACH) }
+						Arrays.asList(
+								Questions.START,
+								Questions.BUS_QUESTION,
+								Questions.BUS_AWARDS_QUESTION_1,
+								Questions.BUS_OUTREACH_QUESTION,
+								Questions.BUS_OUTREACH) },
+				{ "no\nyes", Questions.BUS_OUTREACH_QUESTION,
+						Arrays.asList(
+								Questions.BUS_OUTREACH_QUESTION,
+								Questions.BUS_AWARDS_QUESTION_2,
+								Questions.BUS_AWARDS) },
+				{ "no\nno\nyes", Questions.BUS_AWARDS_QUESTION_1,
+						Arrays.asList(
+								Questions.BUS_AWARDS_QUESTION_1,
+								Questions.BUS_FINANCE_QUESTION,
+								Questions.BUS_AWARDS_QUESTION_2,
+								Questions.BUS_AWARDS) },
+				{ "yes\nno\nnope\nno", Questions.START,
+						Arrays.asList(
+								Questions.START,
+								Questions.HW_ELECTRICAL_QUESTION,
+								Questions.HW_FABRICATION_QUESTION,
+								Questions.HW_DESIGN_QUESTION,
+								Questions.CHAM) },
+				{ "yes", Questions.HW_ELECTRICAL_QUESTION,
+						Arrays.asList(
+								Questions.HW_ELECTRICAL_QUESTION,
+								Questions.HW_ELECTRICAL) },
+				{ "yes", Questions.HW_FABRICATION_QUESTION,
+						Arrays.asList(
+								Questions.HW_FABRICATION_QUESTION,
+								Questions.HW_FABRICATION) },
+				{ "yes", Questions.HW_DESIGN_QUESTION,
+						Arrays.asList(
+								Questions.HW_DESIGN_QUESTION,
+								Questions.HW_DESIGN) }
 		});
 	}
 
@@ -53,10 +79,38 @@ public class QuestionRunnerTest {
 	}
 
 	@Test
-	public void expectedOutputTest() {
+	public void expectedOutputTestLF() {
 		try (InputStream stream = new ByteArrayInputStream(input.getBytes());
 				QuestionRunner runner = new QuestionRunner(stream)) {
 			assumeTrue(runner.getDelimeter().matcher("\n").matches());
+			runner.start(startingQuestion);
+			assertEquals(printedValues(), runner.getPrintedText());
+		} catch (IOException e) {
+			throw new RuntimeException("Failure on closing stream", e);
+		}
+	}
+
+	@Test
+	public void expectedOutputTestCRLF() {
+		String newInput = input.replace("\n", "\r\n");
+		try (InputStream stream = new ByteArrayInputStream(newInput.getBytes());
+				QuestionRunner runner = new QuestionRunner(stream)) {
+			assumeTrue(runner.getDelimeter().matcher("\r\n").matches());
+			assumeTrue(newInput.contains("\r\n"));
+			runner.start(startingQuestion);
+			assertEquals(printedValues(), runner.getPrintedText());
+		} catch (IOException e) {
+			throw new RuntimeException("Failure on closing stream", e);
+		}
+	}
+
+	@Test
+	public void expectedOutputTestCR() {
+		String newInput = input.replace("\n", "\r");
+		try (InputStream stream = new ByteArrayInputStream(newInput.getBytes());
+				QuestionRunner runner = new QuestionRunner(stream)) {
+			assumeTrue(runner.getDelimeter().matcher("\r").matches());
+			assumeTrue(newInput.contains("\r"));
 			runner.start(startingQuestion);
 			assertEquals(printedValues(), runner.getPrintedText());
 		} catch (IOException e) {

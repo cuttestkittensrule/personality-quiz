@@ -1,12 +1,25 @@
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.util.IllegalFormatException;
 
 /**
  * Runs through the questions.
+ * 
  * @author Kyle Cooney
+ * @see <a href=
+ *      "https://docs.google.com/drawings/d/1X7MyCkhH1geZDMKc6ajS6VB9AqLTrfoT4XfD0IZrinY/edit">flow
+ *      chart</a>
+ * @see <a href=
+ *      "https://drive.google.com/file/d/1eqbuXWzLDWZYpJzUqDuFEfw6P-cA6rmb/view?usp=sharing">Sample
+ *      output runs by Cierra</a>
+ * @see <a href=
+ *      "https://drive.google.com/file/d/1E8sguLRAlIejXXm1VRYG4jQKBjKJEY0A/view?usp=sharing">Tests
+ *      I wrote for this code</a> (will require JUnit 4 jars to be accessible to
+ *      work)
  */
 public class QuestionRunner implements AutoCloseable {
 	private static final String errorMessage = "This QuestionRunner is closed.";
@@ -14,27 +27,50 @@ public class QuestionRunner implements AutoCloseable {
 	private String name;
 	private boolean closed;
 	private StringBuilder printedText;
+
 	/**
 	 * Creates a QuestionRunner with an InputStream
+	 * 
 	 * @param stream the InputStream to use
 	 * @throws NullPointerException if {@code stream} is null
 	 */
 	public QuestionRunner(InputStream stream) {
-		input = new Scanner(Objects.requireNonNull(stream,"stream should not be null"));
+		input = new Scanner(Objects.requireNonNull(stream, "stream should not be null"));
 		printedText = new StringBuilder();
 		closed = false;
 	}
 
+	/**
+	 * Prints the message, then stores it's contents to {@link #printedText}
+	 * 
+	 * @param message the message to print
+	 * @see #getPrintedText()
+	 */
 	private void println(String message) {
 		System.out.println(message);
 		printedText.append(message);
 		printedText.append("\n");
 	}
 
-	private void print() {
+	/**
+	 * Prints a line, and stores it's contents to {@link #printedText}
+	 * 
+	 * @see #println(String)
+	 * @see #getPrintedText()
+	 */
+	private void println() {
 		println("");
 	}
 
+	/**
+	 * Prints a new line with the given format and arguments
+	 * 
+	 * @param format the format of the printed stream
+	 * @param args   the arguments to apply to the stream
+	 * @throws IllegalFormatException if the format is invalid
+	 * @apiNote equivelent to calling {@link #println(String)}
+	 *          with the string returned by {@link String#format(String, Object...)}
+	 */
 	private void printf(String format, Object... args) {
 		String message = String.format(format, args);
 		println(message);
@@ -42,6 +78,7 @@ public class QuestionRunner implements AutoCloseable {
 
 	/**
 	 * Gets the delimeter used by the internal scanner
+	 * 
 	 * @return the delimeter being used
 	 */
 	public Pattern getDelimeter() {
@@ -53,6 +90,7 @@ public class QuestionRunner implements AutoCloseable {
 
 	/**
 	 * Promps the user for their name and introduces them to the quiz
+	 * 
 	 * @throws IllegalStateException if this object is closed
 	 */
 	public void askName() {
@@ -68,9 +106,10 @@ public class QuestionRunner implements AutoCloseable {
 
 	/**
 	 * Runs through all questions possible
+	 * 
 	 * @param startingQuestion the first question to ask
 	 * @throws IllegalStateException if this object is closed
-	 * @throws NullPointerException if {@code startingQuestion} is null
+	 * @throws NullPointerException  if {@code startingQuestion} is null
 	 */
 	public void start(Questions startingQuestion) {
 		if (closed) {
@@ -79,7 +118,7 @@ public class QuestionRunner implements AutoCloseable {
 		Questions currentQuestion = Objects.requireNonNull(startingQuestion);
 		boolean running = true;
 		while (running) {
-			print();
+			println();
 			println(currentQuestion.getPrompt());
 			if (currentQuestion.hasAnswers()) {
 				String response = input.nextLine();
@@ -97,14 +136,28 @@ public class QuestionRunner implements AutoCloseable {
 			} else {
 				running = false;
 			}
-			
+
 		}
 	}
 
+	/**
+	 * Gets the text printed to the standard output {@link PrintStream}
+	 * 
+	 * @return Returns a string containing all of the text this QuestionRunner has
+	 *         printed
+	 */
 	public String getPrintedText() {
 		return printedText.toString();
 	}
 
+	/**
+	 * Closes this QuestionRunner.
+	 * Calling any method that requires the given {@link InputStream}
+	 * will throw an {@link IllegalStateException}
+	 * 
+	 * @throws IllegalStateException if this QuestionRunner is allready closed
+	 * @see #isClosed()
+	 */
 	@Override
 	public void close() {
 		if (closed) {
@@ -113,5 +166,16 @@ public class QuestionRunner implements AutoCloseable {
 		closed = true;
 		input.close();
 		name = null;
+	}
+
+	/**
+	 * Checks if this QuestionRunner is closed
+	 * 
+	 * @return {@code true} if this QuestionRunner is closed. Otherwise,
+	 *         {@code false}
+	 * @see #close()
+	 */
+	public boolean isClosed() {
+		return closed;
 	}
 }
