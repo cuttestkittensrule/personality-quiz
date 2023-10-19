@@ -24,7 +24,7 @@ public class QuestionRunnerTest {
 	@Parameters(name = "{index}: {1} -> {0}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] {
-				{ "no\nyes\nyes\nyes", Questions.START,
+				{ "no\nYeaH\nYep\nYeA", Questions.START,
 						Arrays.asList(
 								Questions.START,
 								Questions.BUS_QUESTION,

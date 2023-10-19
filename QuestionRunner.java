@@ -34,7 +34,7 @@ public class QuestionRunner implements AutoCloseable {
 	 * @throws NullPointerException if {@code stream} is null
 	 */
 	public QuestionRunner(InputStream stream) {
-		input = new Scanner(Objects.requireNonNull(stream, "stream should not be null"));
+		input = new Scanner(Objects.requireNonNull(stream, "stream should not be null"), "utf-8");
 		printedText = new StringBuilder();
 		closed = false;
 	}
@@ -99,8 +99,11 @@ public class QuestionRunner implements AutoCloseable {
 			} else {
 				running = false;
 			}
-
 		}
+		if (name != null) {
+			System.out.printf("Thank you %s for participating in the interests quiz! Have a nice day!%n", name);
+		}
+
 	}
 
 	/**

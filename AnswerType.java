@@ -22,7 +22,7 @@ public enum AnswerType {
 	/**
 	 * A positive response to a question
 	 */
-	positive("yes", "yep", "ye", "yes!", "yep!", "ye!"),
+	positive("yes", "yep", "ye", "yea", "yeah", "yes!", "yep!", "ye!", "yea!", "yep!"),
 	/**
 	 * A negative response to a question
 	 */
@@ -45,6 +45,7 @@ public enum AnswerType {
 
 	/**
 	 * Creates an Answer with the given Question to go to next
+	 * 
 	 * @param next the question to go to next
 	 * @return the Answer generated
 	 * @see Answer
@@ -55,6 +56,7 @@ public enum AnswerType {
 
 	/**
 	 * Represents a way to answer a {@link Questions}
+	 * 
 	 * @see Questions
 	 * @see AnswerType#createAnswer(Questions)
 	 */
@@ -69,6 +71,7 @@ public enum AnswerType {
 
 		/**
 		 * Gets the next question
+		 * 
 		 * @return the next question
 		 * @see #matches(String)
 		 */
@@ -78,6 +81,7 @@ public enum AnswerType {
 
 		/**
 		 * Checks if a string has a match with the given {@link AnswerType}
+		 * 
 		 * @param val the string to check against
 		 * @return {@code true} if there is a match
 		 */
